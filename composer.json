@@ -1,0 +1,27 @@
+{
+    "name": "itlessons/php-ioc",
+    "type": "library",
+    "description": "PHP Inversion of Control(IoC) Library",
+    "keywords": ["ioc", "container", "dependency"],
+    "homepage": "https://github.com/itlessons/php-ioc",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "itlessons",
+            "homepage": "http://www.itlessons.info"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "IoC\\": "src/IoC"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*"
+    },
+    "version": "0.0.1",
+    "minimum-stability": "dev"
+}
