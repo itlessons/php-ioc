@@ -106,6 +106,20 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('ContainerSomeClass2', $instance3->cls);
         $this->assertFalse($instance3->cls === $instance4->cls);
     }
+
+    public function testInstanceMethod()
+    {
+        $obj = new ContainerSomeClass();
+
+        $c = new Container();
+        $c->instance(array('b1', 'b2', 'b3'), $obj);
+
+        $obj1 = $c->make('b1');
+        $obj2 = $c->make('b2');
+        $obj3 = $c->make('b3');
+
+        $this->assertTrue($obj === $obj1 && $obj === $obj2 && $obj === $obj3);
+    }
 }
 
 class ContainerSomeClass

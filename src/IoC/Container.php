@@ -163,6 +163,29 @@ class Container
     }
 
     /**
+     * Register an existing instance as shared in the container.
+     *
+     * @param string|array $name
+     * @param $instance
+     */
+    public function instance($name, $instance)
+    {
+        if (is_array($name)) {
+            $names = $name;
+            $name = $names[0];
+
+            $this->instances[$name] = $instance;
+
+            foreach ($names as $n) {
+                $this->aliases[$n] = $name;
+            }
+
+            return;
+        }
+        $this->instances[$name] = $instance;
+    }
+
+    /**
      * @param string $name
      * @param null $default
      * @return mixed
