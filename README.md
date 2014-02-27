@@ -94,3 +94,5 @@ You can run the unit tests with the following command:
 Links
 -----
 
+[Принцип Inversion of Control (IoC) в вашем php проекте] (http://www.itlessons.info/php/inversion-of-control/)
+
