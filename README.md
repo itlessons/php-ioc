@@ -82,6 +82,22 @@ Binding an interface to an implementation:
     $c->make('UserController');
 
 
+Installation
+------------
+
+The recommended way to install php-ioc is through [Composer][_Composer]. Just create a
+``composer.json`` file and run the ``php composer.phar install`` command to
+install it:
+
+    {
+        "require": {
+            "itlessons/php-ioc": "*"
+        }
+    }
+
+Alternatively, you can download the [php-ioc.zip][_php-ioc.zip] file and extract it.
+
+
 Resources
 ---------
 
@@ -96,3 +112,7 @@ Links
 
 [Принцип Inversion of Control (IoC) в вашем php проекте] (http://www.itlessons.info/php/inversion-of-control/)
 
+
+
+[_Composer]: http://getcomposer.org
+[_php-social.zip]:  https://github.com/itlessons/php-social/archive/master.zip
