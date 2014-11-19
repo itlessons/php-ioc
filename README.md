@@ -115,4 +115,4 @@ Links
 
 
 [_Composer]: http://getcomposer.org
-[_php-social.zip]:  https://github.com/itlessons/php-social/archive/master.zip
+[_php-ioc.zip]:  https://github.com/itlessons/php-ioc/archive/master.zip
