@@ -51,6 +51,20 @@ class Container
     }
 
     /**
+     * Check exist or not binds in container
+     *
+     * @param string $name
+     * @return bool
+     */
+    public function exists($name)
+    {
+        return
+            array_key_exists($name, $this->bindings) ||
+            array_key_exists($name, $this->aliases) ||
+            array_key_exists($name, $this->instances);
+    }
+
+    /**
      * Resolve the given type from the container.
      *
      * @param $name
@@ -108,23 +122,20 @@ class Container
             return new $callback;
         }
 
-        $classes = $constructor->getParameters();
-
-        $deps = array_merge($parameters, $this->getDependencies(
-            array_diff_key($classes, $parameters)
-        ));
-
-        return $reflector->newInstanceArgs($deps);
+        return $reflector->newInstanceArgs(
+            $this->getDependencies($constructor->getParameters(), $parameters)
+        );
     }
 
     /**
      * Resolve all of the dependencies from the ReflectionParameters.
      *
      * @param ReflectionParameter[] $parameters
+     * @param [] $primitives
      * @return array
      * @throws LogicException
      */
-    protected function getDependencies($parameters)
+    protected function getDependencies($parameters, $primitives = array())
     {
         $dependencies = array();
 
@@ -132,10 +143,15 @@ class Container
 
             $class = $parameter->getClass();
 
-            if ($this->isInstanceOfContainer($parameter)) {
+
+            if (array_key_exists($parameter->name, $primitives)) {
+                $dependencies[] = $primitives[$parameter->name];
+            } elseif ($this->isInstanceOfContainer($parameter)) {
                 $dependencies[] = $this;
             } elseif (!is_null($class)) {
                 $dependencies[] = $this->make($class->name);
+            } elseif (($p = $this->getParameter($parameter->name))) {
+                $dependencies[] = $p;
             } elseif ($parameter->isDefaultValueAvailable()) {
                 $dependencies[] = $parameter->getDefaultValue();
             } else {
@@ -217,7 +233,7 @@ class Container
 
     public function setParameter($name, $value)
     {
-        $array = & $this->parameters;
+        $array = &$this->parameters;
 
         $keys = explode('.', $name);
 
@@ -228,7 +244,7 @@ class Container
                 $array[$key] = array();
             }
 
-            $array = & $array[$key];
+            $array = &$array[$key];
         }
 
         $array[array_shift($keys)] = $value;

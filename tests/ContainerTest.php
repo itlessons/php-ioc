@@ -120,6 +120,41 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($obj === $obj1 && $obj === $obj2 && $obj === $obj3);
     }
+
+    /**
+     * @expectedException \LogicException
+     * @expectedExceptionMessageRegExp /Unresolvable dependency/
+     */
+    public function testMakeParametersException()
+    {
+        $c = new Container();
+        $c->make('ContainerSomeClass4');
+    }
+
+    public function testMakeParameters()
+    {
+        $c = new Container();
+        $obj = $c->make('ContainerSomeClass4', ['host' => 'localhost']);
+
+        $this->assertInstanceOf('ContainerSomeClass4', $obj);
+        $this->assertEquals($obj->host, 'localhost');
+    }
+
+    public function testMakeWithParametersFromContainer()
+    {
+        $c = new Container();
+        $c->setParameter('charset', 'UTF-8');
+        $obj = $c->make('ContainerSomeClass5');
+        $this->assertEquals($obj->charset, 'UTF-8');
+    }
+
+    public function testExists()
+    {
+        $c = new Container();
+        $this->assertFalse($c->exists('ContainerSomeClass4'));
+        $c->bind('ContainerSomeClass4', 'ContainerSomeClass3');
+        $this->assertTrue($c->exists('ContainerSomeClass4'));
+    }
 }
 
 class ContainerSomeClass
@@ -145,5 +180,26 @@ class ContainerSomeClass3
     public function __construct(ContainerSomeClass2 $cls)
     {
         $this->cls = $cls;
+    }
+}
+
+
+class ContainerSomeClass4
+{
+    public $cls;
+    public $host;
+
+    public function __construct($host, ContainerSomeClass2 $cls)
+    {
+        $this->cls = $cls;
+        $this->host = $host;
+    }
+}
+
+class ContainerSomeClass5
+{
+    public function __construct($charset)
+    {
+        $this->charset = $charset;
     }
 }
