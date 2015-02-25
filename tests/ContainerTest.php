@@ -155,10 +155,50 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         $c->bind('ContainerSomeClass4', 'ContainerSomeClass3');
         $this->assertTrue($c->exists('ContainerSomeClass4'));
     }
+
+    public function testExtendedBindings()
+    {
+        $c = new Container();
+        $c->bind('twig', 'ContainerSomeClass', true);
+        $c->extend('twig', function (ContainerSomeClass $cls) {
+            $cls->t = 555;
+            return $cls;
+        });
+
+        $result = $c->make('twig');
+
+        $this->assertEquals(555, $c->make('twig')->t);
+        $this->assertSame($result, $c->make('twig'));
+
+        $c->singleton('mailer', function () {
+            return new ContainerSomeClass();
+        });
+
+        $c->extend('mailer', function (ContainerSomeClass $cls) {
+            $cls->t = 777;
+            return $cls;
+        });
+
+        $result = $c->make('mailer');
+
+        $this->assertEquals(777, $c->make('mailer')->t);
+        $this->assertSame($result, $c->make('mailer'));
+
+        $c->singleton('q', 'ContainerSomeClass');
+        $cls = $c->make('q');
+        $this->assertEquals(1, $cls->t);
+        $c->extend('q', function (ContainerSomeClass $cls) {
+            $cls->t = 888;
+            return $cls;
+        });
+        $this->assertEquals(888, $cls->t);
+        $this->assertSame($cls, $c->make('q'));
+    }
 }
 
 class ContainerSomeClass
 {
+    public $t = 1;
 }
 
 class ContainerSomeClass2

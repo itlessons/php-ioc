@@ -201,6 +201,35 @@ class Container
         $this->instances[$name] = $instance;
     }
 
+    public function extend($abstract, Closure $closure)
+    {
+        if (!isset($this->bindings[$abstract])) {
+            throw new \InvalidArgumentException("Type {$abstract} is not bound.");
+        }
+
+        if (isset($this->instances[$abstract])) {
+            $this->instances[$abstract] = $closure($this->instances[$abstract], $this);
+        } else {
+            $extender = $this->getExtender($abstract, $closure);
+            $this->bind($abstract, $extender, $this->isShared($abstract));
+        }
+    }
+
+    /**
+     * Get an extender Closure for resolving a type.
+     *
+     * @param string $abstract
+     * @param \Closure $closure
+     * @return \Closure
+     */
+    protected function getExtender($abstract, Closure $closure)
+    {
+        $callback = $this->bindings[$abstract]['callback'];
+        return function ($container) use ($callback, $closure) {
+            return $closure($container->build($callback), $container);
+        };
+    }
+
     /**
      * @param string $name
      * @param null $default
