@@ -14,6 +14,7 @@ class Container
     private $bindings = array();
     private $instances = array();
     private $aliases = array();
+    private $extenders = array();
 
     /**
      * Register a shared binding in the container.
@@ -88,6 +89,10 @@ class Container
         }
 
         $object = $this->build($callback, $parameters);
+
+        foreach ($this->getExtenders($name) as $extender) {
+            $object = $extender($object, $this);
+        }
 
         if ($this->isShared($name)) {
             $this->instances[$name] = $object;
@@ -201,33 +206,28 @@ class Container
         $this->instances[$name] = $instance;
     }
 
-    public function extend($abstract, Closure $closure)
-    {
-        if (!isset($this->bindings[$abstract])) {
-            throw new \InvalidArgumentException("Type {$abstract} is not bound.");
-        }
-
-        if (isset($this->instances[$abstract])) {
-            $this->instances[$abstract] = $closure($this->instances[$abstract], $this);
-        } else {
-            $extender = $this->getExtender($abstract, $closure);
-            $this->bind($abstract, $extender, $this->isShared($abstract));
-        }
-    }
-
     /**
-     * Get an extender Closure for resolving a type.
+     * "Extend" an abstract type in the container.
      *
      * @param string $abstract
      * @param \Closure $closure
-     * @return \Closure
+     *
      */
-    protected function getExtender($abstract, Closure $closure)
+    public function extend($abstract, Closure $closure)
     {
-        $callback = $this->bindings[$abstract]['callback'];
-        return function ($container) use ($callback, $closure) {
-            return $closure($container->build($callback), $container);
-        };
+        if (isset($this->instances[$abstract])) {
+            $this->instances[$abstract] = $closure($this->instances[$abstract], $this);
+        } else {
+            $this->extenders[$abstract][] = $closure;
+        }
+    }
+
+    protected function getExtenders($abstract)
+    {
+        if (isset($this->extenders[$abstract])) {
+            return $this->extenders[$abstract];
+        }
+        return array();
     }
 
     /**
