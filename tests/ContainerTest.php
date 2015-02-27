@@ -194,6 +194,67 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(888, $cls->t);
         $this->assertSame($cls, $c->make('q'));
     }
+
+    public function testCallWithDependencies()
+    {
+        $c = new Container();
+        $result = $c->call(function (StdClass $foo, $bar = array()) {
+            return func_get_args();
+        });
+        $this->assertInstanceOf('stdClass', $result[0]);
+        $this->assertEquals([], $result[1]);
+
+        $result = $c->call(function (StdClass $foo, $bar = array()) {
+            return func_get_args();
+        }, ['bar' => 'jack']);
+        $this->assertInstanceOf('stdClass', $result[0]);
+        $this->assertEquals('jack', $result[1]);
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testCallWithException()
+    {
+        $c = new Container;
+        $c->call('ContainerTestCall');
+    }
+
+    public function testCallWithStaticMethodNameString()
+    {
+        $container = new Container;
+        $result = $container->call('ContainerTestCall::injectS');
+        $this->assertInstanceOf('ContainerSomeClass', $result[0]);
+        $this->assertEquals('jack', $result[1]);
+    }
+
+    public function testCallWithGlobalMethodName()
+    {
+        $container = new Container;
+        $result = $container->call('containerTestInject');
+        $this->assertInstanceOf('ContainerSomeClass', $result[0]);
+        $this->assertEquals('jack', $result[1]);
+    }
+
+    public function testCallWithCallableArray()
+    {
+        $container = new Container;
+        $stub = new ContainerTestCall();
+        $result = $container->call([$stub, 'work'], ['foo', 'bar']);
+        $this->assertEquals(['foo', 'bar'], $result);
+    }
+
+    public function testCallWithAtSignBasedClassReferences()
+    {
+        $container = new Container;
+        $result = $container->call('ContainerTestCall:work', ['foo', 'bar']);
+        $this->assertEquals(['foo', 'bar'], $result);
+
+        $container = new Container;
+        $result = $container->call('ContainerTestCall:inject');
+        $this->assertInstanceOf('ContainerSomeClass', $result[0]);
+        $this->assertEquals('jack', $result[1]);
+    }
 }
 
 class ContainerSomeClass
@@ -242,4 +303,27 @@ class ContainerSomeClass5
     {
         $this->charset = $charset;
     }
+}
+
+class ContainerTestCall
+{
+    public function work()
+    {
+        return func_get_args();
+    }
+
+    public function inject(ContainerSomeClass $stub, $default = 'jack')
+    {
+        return func_get_args();
+    }
+
+    public static function injectS(ContainerSomeClass $stub, $default = 'jack')
+    {
+        return func_get_args();
+    }
+}
+
+function containerTestInject(ContainerSomeClass $stub, $default = 'jack')
+{
+    return func_get_args();
 }
